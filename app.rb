@@ -21,7 +21,8 @@ class App < Sinatra::Application
     #  return 'Invalid Request'
     #end
     movie = { name: params[:name], oid: params[:oid] }
-    file.merge!(movie)
+    # structure of file is an array of hashes
+    file[:favorites] << movie
     logger.info file.to_json
     File.write('data.json',JSON.pretty_generate(file))
     movie.to_json
