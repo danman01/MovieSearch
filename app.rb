@@ -17,11 +17,10 @@ class App < Sinatra::Application
     logger.info "post received...\n params: #{params}"
     logger.info "request body: \n #{request.body.read}"
     file = JSON.parse(File.read('data.json'))
-    #unless params[:name] && params[:oid]
-    #  return 'Invalid Request'
-    #end
-    movie = { name: params[:name], oid: params[:oid] }
-    # structure of file is an array of hashes
+    unless params[:name] && params[:oid]
+      return 'Invalid Request'
+    end
+    movie = { "name": params[:name], "oid": params[:oid] }
     file[:favorites] << movie
     logger.info file.to_json
     File.write('data.json',JSON.pretty_generate(file))
