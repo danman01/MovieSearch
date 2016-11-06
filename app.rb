@@ -15,7 +15,7 @@ class App < Sinatra::Application
   # curl -X POST -H "Content-Type: application/json" -d '{"name":"Star Wars", "oid": "1"}' http://localhost:9292
   post '/favorites' do
     logger.info "post received...\n params: #{params}"
-    logger.info "request body: \n #{request.body.read}" - reading request body from curl
+    logger.info "request body: \n #{request.body.read}"
     file = JSON.parse(File.read('data.json'))
     #unless params[:name] && params[:oid]
     #  return 'Invalid Request'
