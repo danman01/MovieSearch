@@ -1,11 +1,19 @@
 <script src="application.js" type="text/javascript" charset="utf-8">
 </script>
+
 <form id="movieSearch" action="#" method="get">
   <label for="s">Enter Movie Title</label>
-  <input name="s" value="Dumb and Dumber">
-  <button>Search OMDB</button>
+  <input name="s" value="" placeholder="Dumb and Dumber...">
+  <button id='searchButton' disabled=true>Search OMDB</button>
 </form>
 
+<div id="noResults" style="display:none;">
+  No results found... 
+</div>
+
+<div id="loading" style="display:none;">
+  <img src="ajax-loader.gif" alt="" />
+</div>
 <ul id="movieList">
   
 </ul>
