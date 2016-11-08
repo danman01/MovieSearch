@@ -42,6 +42,41 @@
     }
   };
 
+  function backend_api_request(method, name, imdbId){
+    window.loading.style.display = "block";
+
+    var url = '/' + method + '?name=' + name + '&oid='+ imdbId
+    if(method == "favorites/list"){
+      var kind = "GET";
+    }
+    else {
+      var kind = "POST";
+    }
+    var response;
+
+    // setup ajax request:
+    var xhr = new XMLHttpRequest();
+    var cachebuster = '&' + new Date().getTime();
+    xhr.open(kind, url + cachebuster);
+    xhr.send(null);
+
+    xhr.onload = function () {
+      var DONE = 4; // readyState 4 means the request is done.
+      var OK = 200; // status 200 is a successful return.
+      if (xhr.readyState === DONE) {
+        if (xhr.status === OK) 
+          response = xhr.responseText
+            console.log('Success: ' + response); // 'This is the returned text.'
+        alert(JSON.parse(response));
+
+        window.loading.style.display = "none";
+      } else {
+        response = xhr.status;
+        console.log('Error: ' + response); // An error occurred during the request.
+      }
+    }
+  };
+
   function update_movie_list(kind, response){
     if(kind == "s"){
       populate_list(response)
@@ -88,6 +123,11 @@
         detail.addEventListener("click", function( event ) {
           show_movie_details( event.srcElement );
         });
+        var favorite = document.createElement("a");
+        favorite.text = "Add Favorite";
+        favorite.addEventListener("click", function (event) {
+          add_favorite( event.srcElement );
+        })
       }
       else if(prop == "Poster" && result[prop] != "N/A"){
         var detail = document.createElement('img');
@@ -104,6 +144,10 @@
 
   function show_movie_details(movie){
     omdb_api_request("i", movie.dataset.imdbId);
+  }
+
+  function add_favorite(movie){
+    backend_api_request("favorites", movie.parentElement.innerText, movie.dataset.imdbId);
   }
 
   function favorite_movie(oid){
@@ -123,6 +167,10 @@
   // Make sure the DOM is loaded before setting up our functions
   document.addEventListener('DOMContentLoaded', function(){ 
     activate_movie_search();
+    document.getElementById("showFavorites").addEventListener("click", function(){
+
+    backend_api_request( 'favorites/list',null,null ); 
+    })
   })
 
 })();

@@ -6,7 +6,7 @@ class App < Sinatra::Application
     send_file ('views/index.html')
   end
 
-  get '/favorites' do
+  get '/favorites/list' do
     response.header['Content-Type'] = 'application/json'
     send_file 'data.json' #File.join(settings.public_folder, 'data.json')
   end
