@@ -1,7 +1,8 @@
 <script src="application.js" type="text/javascript" charset="utf-8">
 </script>
-
-<form id="movieSearch" action="#" method="get">
+<div style="width: 100%;">
+<div style="float:left; width: 45%;">
+ <form id="movieSearch" action="#" method="get">
   <label for="s">Enter Movie Title</label>
   <input name="s" value="" placeholder="Dumb and Dumber...">
   <button id='searchButton' disabled=true>Search OMDB</button>
@@ -17,3 +18,13 @@
 <ul id="movieList">
   
 </ul>
+ 
+</div>  
+<div style="display:none; float: right; width: 45%; scroll: auto;" id="detailsContainer">
+  <div id="details">
+    
+  </div>
+  
+</div>
+
+</div>

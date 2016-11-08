@@ -10,16 +10,18 @@
       form.preventDefault();
       reset_page();
       var title = form.srcElement.elements.namedItem("s").value;
-      console.log("form submitted with " + title);
-      search_api(title);
+      omdb_api_request('s', title);
     }
     document.getElementById("searchButton").disabled=false;
   }
 
-  function search_api(title){
-    // search OMDBapi with supplied title
-    var url = 'https://www.omdbapi.com/?s=' + title;
+  function omdb_api_request(kind, query){
+    window.loading.style.display = "block";
+
+    var url = 'https://www.omdbapi.com/?' + kind + '=' + query;
     var response;
+
+    // setup ajax request:
     var xhr = new XMLHttpRequest();
     var cachebuster = '&' + new Date().getTime();
     xhr.open('POST', url + cachebuster);
@@ -32,7 +34,7 @@
         if (xhr.status === OK) 
           response = xhr.responseText
             console.log('Success: ' + response); // 'This is the returned text.'
-        update_page(JSON.parse(response))
+        update_movie_list(kind, JSON.parse(response))
       } else {
         response = xhr.status;
         console.log('Error: ' + response); // An error occurred during the request.
@@ -40,10 +42,19 @@
     }
   };
 
-  function update_page(response){
+  function update_movie_list(kind, response){
+    if(kind == "s"){
+      populate_list(response)
+    } 
+    else if(kind == "i"){
+      populate_details(response)
+    }
+  }
+
+  function populate_list(response){
     if(response.Search != undefined) {
       for(i=0; i < response.Search.length; i++){ 
-        var html = build_movie_html(response.Search[i]);
+        var html = build_movie_html("basic", response.Search[i]);
         window.movieList.append(html);
       }
     }
@@ -53,18 +64,36 @@
     window.loading.style.display = "none";
   }
 
-  function build_movie_html(result) {
+  function populate_details(response){
+
+    var details = document.getElementById("detailsContainer");
+    var html = build_movie_html("full", response);
+    details.style.display="block"
+    document.getElementById("details").innerHTML=html.innerHTML;
+
+    window.loading.style.display = "none";
+  }
+
+  function hide_details() {
+    document.getElementById("details").style.display="none";
+  }
+  
+
+  function build_movie_html(level, result) {
     var el = document.createElement("li");
     for(prop in result){
       if(prop == "Title"){
         var detail = document.createElement('h3');
-        detail.innerHTML = "<a href='#' data-onclick='showDetails'>" + result[prop] + "</a>";
+        detail.innerHTML = "<a href='#' data-imdb-id='"+result['imdbID']+"'>" + result[prop] + "</a>";
+        detail.addEventListener("click", function( event ) {
+          show_movie_details( event.srcElement );
+        });
       }
       else if(prop == "Poster" && result[prop] != "N/A"){
         var detail = document.createElement('img');
         detail.src = result[prop];
       }
-      else {
+      else if(level=="full") {
         var detail = document.createElement('p');
         detail.innerHTML = prop + ": " + result[prop];
       }
@@ -73,8 +102,8 @@
     return el;
   }
 
-  function show_movie_details(oid){
-    // show more details
+  function show_movie_details(movie){
+    omdb_api_request("i", movie.dataset.imdbId);
   }
 
   function favorite_movie(oid){
@@ -86,7 +115,6 @@
   }
 
   function reset_page(){
-    window.loading.style.display = "block";
     window.noResults.style.display="none";
     window.movieList.innerHTML="";
 
