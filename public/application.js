@@ -1,13 +1,13 @@
 (function() {
 var loading = document.getElementById("loading");
 var noResults = document.getElementById("noResults");
-var ul = document.getElementById("movieList");
+var movieList = document.getElementById("movieList");
 
 
 function activate_movie_search(){
   var searchForm = document.getElementById("movieSearch");
   searchForm.onsubmit = function(form){
-
+    form.preventDefault();
     reset_page();
     var title = form.srcElement.elements.namedItem("s").value;
     console.log("form submitted with " + title);
@@ -21,10 +21,11 @@ function search_api(title){
   var url = 'http://www.omdbapi.com/?s=' + title;
   var response;
   var xhr = new XMLHttpRequest();
-  xhr.open('POST', url);
+  var cachebuster = '&' + new Date().getTime();
+  xhr.open('POST', url + cachebuster);
   xhr.send(null);
 
-  xhr.onreadystatechange = function () {
+  xhr.onload = function () {
     var DONE = 4; // readyState 4 means the request is done.
     var OK = 200; // status 200 is a successful return.
     if (xhr.readyState === DONE) {
@@ -42,8 +43,8 @@ function search_api(title){
 function update_page(response){
   if(response.Search != undefined) {
     for(i=0; i < response.Search.length; i++){ 
-      var html = _build_movie_html(response.Search[i]);
-      window.ul.append(html);
+      var html = build_movie_html(response.Search[i]);
+      window.movieList.append(html);
     }
   }
   else {
@@ -52,7 +53,7 @@ function update_page(response){
   window.loading.style.display = "none";
 }
 
-function _build_movie_html(result) {
+function build_movie_html(result) {
   var el = document.createElement("li");
   for(prop in result){
     if(prop == "Title"){
@@ -87,7 +88,7 @@ function display_favorites(){
 function reset_page(){
   window.loading.style.display = "block";
   window.noResults.style.display="none";
-  //window.ul.innerHTML="";
+  window.movieList.innerHTML="";
 
 }
 

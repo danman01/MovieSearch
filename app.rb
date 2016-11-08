@@ -11,8 +11,6 @@ class App < Sinatra::Application
     send_file 'data.json' #File.join(settings.public_folder, 'data.json')
   end
 
-  # to test backend:
-  # curl -X POST -H "Content-Type: application/json" -d '{"name":"Star Wars", "oid": "1"}' http://localhost:9292
   post '/favorites' do
     logger.info "post received...\n params: #{params}"
     logger.info "request body: \n #{request.body.read}"
