@@ -1,22 +1,33 @@
-(function() {
-  var loading = document.getElementById("loading");
-  var noResults = document.getElementById("noResults");
-  var movieList = document.getElementById("movieList");
+var MovieSearch = MovieSearch || {};
 
+MovieSearch.App = {
 
-  function activate_movie_search(){
+  loading : document.getElementById("loading"),
+  noResults : document.getElementById("noResults"),
+  movieList : document.getElementById("movieList"),
+  favoritesContainer : document.getElementById("favoritesContainer"),
+
+    init: function() {
+      MovieSearch.App.activate_movie_search();
+      document.getElementById("showFavorites").addEventListener("click", function(){
+        MovieSearch.App.display_favorites();
+      })
+
+    },
+
+  activate_movie_search : function(){
     var searchForm = document.getElementById("movieSearch");
     searchForm.onsubmit = function(form){
       form.preventDefault();
-      reset_page();
+      MovieSearch.App.reset_page();
       var title = form.srcElement.elements.namedItem("s").value;
-      omdb_api_request('s', title);
+      MovieSearch.App.omdb_api_request('s', title);
     }
     document.getElementById("searchButton").disabled=false;
-  }
+  },
 
-  function omdb_api_request(kind, query){
-    window.loading.style.display = "block";
+  omdb_api_request: function(kind, query){
+    loading.style.display = "block";
 
     var url = 'https://www.omdbapi.com/?' + kind + '=' + query;
     var response;
@@ -34,18 +45,22 @@
         if (xhr.status === OK) 
           response = xhr.responseText
             console.log('Success: ' + response); // 'This is the returned text.'
-        update_movie_list(kind, JSON.parse(response))
+        MovieSearch.App.update_movie_list(kind, JSON.parse(response))
       } else {
         response = xhr.status;
         console.log('Error: ' + response); // An error occurred during the request.
       }
     }
-  };
+  },
 
-  function backend_api_request(method, name, imdbId){
-    window.loading.style.display = "block";
+  backend_api_request : function(method, params){
+    loading.style.display = "block";
 
-    var url = '/' + method + '?name=' + name + '&oid='+ imdbId
+    var paramString = "?requester=app";
+    if(params["name"] !=undefined && params["oid"] !=undefined){
+      paramString = "&name=" + params["name"] + "&oid=" + params["oid"]; 
+    }
+    var url = '/' + method + paramString;
     if(method == "favorites/list"){
       var kind = "GET";
     }
@@ -64,73 +79,77 @@
       var DONE = 4; // readyState 4 means the request is done.
       var OK = 200; // status 200 is a successful return.
       if (xhr.readyState === DONE) {
-        if (xhr.status === OK) 
+        if (xhr.status === OK) {
           response = xhr.responseText
-            console.log('Success: ' + response); // 'This is the returned text.'
-        alert(JSON.parse(response));
-
-        window.loading.style.display = "none";
-      } else {
-        response = xhr.status;
-        console.log('Error: ' + response); // An error occurred during the request.
+          console.log('Success: ' + response); // 'This is the returned text.'
+          var html = MovieSearch.App.build_favorites_html(JSON.parse(response)).innerHTML;
+          favoritesContainer.innerHTML =  html;
+          loading.style.display = "none";
+        } else {
+          response = xhr.status;
+          console.log('Error: ' + response); // An error occurred during the request.
+        }
       }
     }
-  };
+  },
 
-  function update_movie_list(kind, response){
+  update_movie_list : function (kind, response){
     if(kind == "s"){
-      populate_list(response)
+      MovieSearch.App.populate_list(response)
     } 
     else if(kind == "i"){
-      populate_details(response)
+      MovieSearch.App.populate_details(response)
     }
-  }
+  },
 
-  function populate_list(response){
+  populate_list : function (response){
     if(response.Search != undefined) {
       for(i=0; i < response.Search.length; i++){ 
-        var html = build_movie_html("basic", response.Search[i]);
-        window.movieList.append(html);
+        var html = MovieSearch.App.build_movie_html("basic", response.Search[i]);
+        movieList.append(html);
       }
     }
     else {
-      window.noResults.style.display="block";
+      noResults.style.display="block";
     }
-    window.loading.style.display = "none";
-  }
+    loading.style.display = "none";
+  },
 
-  function populate_details(response){
+  populate_details : function (response){
 
     var details = document.getElementById("detailsContainer");
-    var html = build_movie_html("full", response);
+    var html = MovieSearch.App.build_movie_html("full", response);
     details.style.display="block"
-    document.getElementById("details").innerHTML=html.innerHTML;
+      document.getElementById("details").innerHTML=html.innerHTML;
 
-    window.loading.style.display = "none";
-  }
+    loading.style.display = "none";
+  },
 
-  function hide_details() {
+  hide_details : function () {
     document.getElementById("details").style.display="none";
-  }
-  
+  },
 
-  function build_movie_html(level, result) {
+  build_movie_html : function (level, result) {
     var el = document.createElement("li");
     for(prop in result){
       if(prop == "Title"){
         var detail = document.createElement('h3');
         detail.innerHTML = "<a href='#' data-imdb-id='"+result['imdbID']+"'>" + result[prop] + "</a>";
         detail.addEventListener("click", function( event ) {
-          show_movie_details( event.srcElement );
+          MovieSearch.App.show_movie_details( event.srcElement );
         });
         var favorite = document.createElement("a");
-        favorite.text = "Add Favorite";
+        favorite.textContent = "Add Favorite";
         favorite.addEventListener("click", function (event) {
-          add_favorite( event.srcElement );
+          MovieSearch.App.add_favorite( event.srcElement );
         })
+        detail.appendChild(favorite);
       }
       else if(prop == "Poster" && result[prop] != "N/A"){
         var detail = document.createElement('img');
+        if(level == "basic"){
+          detail.height = "75";
+        }
         detail.src = result[prop];
       }
       else if(level=="full") {
@@ -140,37 +159,46 @@
       el.append( detail ); 
     }
     return el;
+  },
+
+  show_movie_details : function (movie){
+    MovieSearch.App.omdb_api_request("i", movie.dataset.imdbId);
+  },
+
+  add_favorite : function (movie){
+    params={"name": movie.parentElement.innterText, "oid": movie.dataset.imdbId}
+    MovieSearch.App.backend_api_request("favorites", params );
+  },
+
+  display_favorites : function (){
+    MovieSearch.App.backend_api_request( 'favorites/list',{} ); 
+  },
+
+  build_favorites_html : function (response_json){
+    var html =document.createElement("ul");
+    if(response_json.favorites.length > 0){
+      for(i=0; i < response_json.favorites.length; i++){ 
+        var li = document.createElement("li");
+        li.textContent = response_json.favorites[i]["name"] + response_json.favorites[i]["oid"];
+        html.append(li);
+      }
+    } else {
+      var p = document.createElement("p");
+      p.textContent = "No favorites yet...";
+      html.append(p);
+    }
+    return html;
+  },
+
+  reset_page : function (){
+    noResults.style.display="none";
+    movieList.innerHTML="";
   }
 
-  function show_movie_details(movie){
-    omdb_api_request("i", movie.dataset.imdbId);
-  }
+} 
 
-  function add_favorite(movie){
-    backend_api_request("favorites", movie.parentElement.innerText, movie.dataset.imdbId);
-  }
+// Make sure the DOM is loaded before setting up our functions
+document.addEventListener('DOMContentLoaded', function(){ 
+  MovieSearch.App.init();
+});
 
-  function favorite_movie(oid){
-    // persist favorite to data.json
-  }
-
-  function display_favorites(){
-    // show all favorites from data.json
-  }
-
-  function reset_page(){
-    window.noResults.style.display="none";
-    window.movieList.innerHTML="";
-
-  }
-
-  // Make sure the DOM is loaded before setting up our functions
-  document.addEventListener('DOMContentLoaded', function(){ 
-    activate_movie_search();
-    document.getElementById("showFavorites").addEventListener("click", function(){
-
-    backend_api_request( 'favorites/list',null,null ); 
-    })
-  })
-
-})();
