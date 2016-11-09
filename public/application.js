@@ -7,22 +7,27 @@ MovieSearch.App = {
   movieList : document.getElementById("movieList"),
   favoritesContainer : document.getElementById("favoritesContainer"),
 
-    init: function() {
-      MovieSearch.App.activate_movie_search();
-      document.getElementById("showFavorites").addEventListener("click", function(){
-        MovieSearch.App.display_favorites();
-      })
+  init: function() {
+    MovieSearch.App.activate_movie_search();
 
-    },
+    // Attach "onclick" event to showFavorites link
+    document.getElementById("showFavorites").addEventListener("click", function(){
+      MovieSearch.App.display_favorites();
+    })
+  },
 
   activate_movie_search : function(){
     var searchForm = document.getElementById("movieSearch");
+
+    // Instead of submitting the form, we prevent form submission and request data from the omdb api
     searchForm.onsubmit = function(form){
       form.preventDefault();
       MovieSearch.App.reset_page();
       var title = form.srcElement.elements.namedItem("s").value;
       MovieSearch.App.omdb_api_request('s', title);
     }
+
+    // Allow the user to submit via the button once this method has been loaded
     document.getElementById("searchButton").disabled=false;
   },
 
@@ -32,9 +37,12 @@ MovieSearch.App = {
     var url = 'https://www.omdbapi.com/?' + kind + '=' + query;
     var response;
 
-    // setup ajax request:
+    // Setup ajax request:
     var xhr = new XMLHttpRequest();
+
+    // This forces the cache to expire so we get the data we want
     var cachebuster = '&' + new Date().getTime();
+
     xhr.open('POST', url + cachebuster);
     xhr.send(null);
 
@@ -44,12 +52,12 @@ MovieSearch.App = {
       if (xhr.readyState === DONE) {
         if (xhr.status === OK) 
           response = xhr.responseText
-            console.log('Success: ' + response); // 'This is the returned text.'
-        MovieSearch.App.update_movie_list(kind, JSON.parse(response))
-      } else {
-        response = xhr.status;
-        console.log('Error: ' + response); // An error occurred during the request.
-      }
+          console.log('Success: ' + response); 
+          MovieSearch.App.update_movie_list(kind, JSON.parse(response))
+        } else {
+          response = xhr.status;
+          console.log('Error: ' + response); // An error occurred during the request.
+        }
     }
   },
 
@@ -61,18 +69,19 @@ MovieSearch.App = {
     if(params["name"] !=undefined && params["oid"] !=undefined){
       paramString += "&name="+params["name"]+"&oid="+params["oid"];
     }
+
+    // We know these routes and http verbs from our backend app.rb
     var url = '/' + method 
-    if(method == "favorites/list"){
-      var kind = "GET";
-    }
-    else {
-      var kind = "POST";
-    }
+      if(method == "favorites/list"){
+        var kind = "GET";
+      }
+      else {
+        var kind = "POST";
+      }
     var response;
 
-    // setup ajax request:
+    // Setup ajax request:
     var xhr = new XMLHttpRequest();
-    //xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 
     xhr.open(kind, url + paramString);
     xhr.send(null);
@@ -83,12 +92,13 @@ MovieSearch.App = {
       if (xhr.readyState === DONE) {
         if (xhr.status === OK) {
           response = xhr.responseText
-          console.log('Success: ' + response); // 'This is the returned text.'
+          console.log('Success: ' + response);
           json = JSON.parse(response)
 
-          // We handle both getting favorites and posting to favorites
+          // We handle both getting favorites and posting to favorites. They both return json in a similar structre that we can turn into html
           var html = MovieSearch.App.build_favorites_html(json).innerHTML;
           favoritesContainer.innerHTML =  html;
+
           loading.style.display = "none";
         } else {
           response = xhr.status;
@@ -100,9 +110,11 @@ MovieSearch.App = {
 
   update_movie_list : function (kind, response){
     if(kind == "s"){
+      // search by entering a title
       MovieSearch.App.populate_list(response)
     } 
     else if(kind == "i"){
+      // imdbId search
       MovieSearch.App.populate_details(response)
     }
   },
@@ -131,9 +143,11 @@ MovieSearch.App = {
   },
 
   hide_details : function () {
+    // Not implemented
     document.getElementById("details").style.display="none";
   },
 
+  // Allows for a "basic" or "full" set of movie details to be returned
   build_movie_html : function (level, result) {
     var el = document.createElement("li");
     for(prop in result){
@@ -148,9 +162,9 @@ MovieSearch.App = {
         // setup Full Details link
         var more = document.createElement("a");
         more.textContent = "Full Details"
-        more.addEventListener("click", function( event ) {
-          MovieSearch.App.show_movie_details( titleLink );
-        });
+          more.addEventListener("click", function( event ) {
+            MovieSearch.App.show_movie_details( titleLink );
+          });
 
         // setup Add Favorite link
         var favorite = document.createElement("a");
@@ -173,6 +187,8 @@ MovieSearch.App = {
         }
       }
       else if(prop == "Poster" && result[prop] != "N/A"){
+
+        // setup Poster image
         var detail = document.createElement('img');
         if(level == "basic"){
           detail.height = "100";
@@ -184,6 +200,8 @@ MovieSearch.App = {
         detail.src = result[prop];
       }
       else if(level=="full") {
+
+        // setup Full details 
         var detail = document.createElement('p');
         detail.innerHTML = prop + ": " + result[prop];
       }
