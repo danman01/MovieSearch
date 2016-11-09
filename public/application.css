@@ -8,10 +8,12 @@ html {
 
 body {
   color: aqua;
+  font-family: monospace;
 }
 
 a {
   color: orange;
+  cursor: pointer;
 }
 
 a:visited {
@@ -22,9 +24,43 @@ body > .container {
   max-width: 1200px;
   margin: 50px 30px 20px 30px;
   text-align: center;
-  
+
+}
+#favoritesContainer {
+  text-align: left;
+}
+form#movieSearch {
+  font-size: 30px;
+  border-radius: 10px 10px 10px 10px;
+  -moz-border-radius: 10px 10px 10px 10px;
+  -webkit-border-radius: 10px 10px 10px 10px;
+  border: 2px solid #000000;
+  margin: 0 auto;
+  padding: 20px;
+  width: 500px;
+}
+form#movieSearch input {
+  font-size: 20px;
+}
+form#movieSearch button {
+  font-size: 20px;
 }
 
 .container li, .container ul {
   list-style-type:none;
+}
+.container #noResults {
+  display: none;
+}
+.container #loading{
+  display: none;
+}
+.container .movieList.right {
+  display:none; float: right; width: 45%; scroll: auto;
+}
+.container .movieList.container {
+  width: 100%;
+}
+.container .movieList.left {
+  float: left; width: 45%;
 }

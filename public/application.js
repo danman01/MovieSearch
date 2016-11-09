@@ -56,11 +56,12 @@ MovieSearch.App = {
   backend_api_request : function(method, params){
     loading.style.display = "block";
 
-    var paramString = "?requester=app";
+    var cachebuster = new Date().getTime();
+    var paramString = "?" + cachebuster;
     if(params["name"] !=undefined && params["oid"] !=undefined){
-      paramString = "&name=" + params["name"] + "&oid=" + params["oid"]; 
+      paramString += "&name="+params["name"]+"&oid="+params["oid"];
     }
-    var url = '/' + method + paramString;
+    var url = '/' + method 
     if(method == "favorites/list"){
       var kind = "GET";
     }
@@ -71,8 +72,9 @@ MovieSearch.App = {
 
     // setup ajax request:
     var xhr = new XMLHttpRequest();
-    var cachebuster = '&' + new Date().getTime();
-    xhr.open(kind, url + cachebuster);
+    //xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+    xhr.open(kind, url + paramString);
     xhr.send(null);
 
     xhr.onload = function () {
@@ -82,7 +84,10 @@ MovieSearch.App = {
         if (xhr.status === OK) {
           response = xhr.responseText
           console.log('Success: ' + response); // 'This is the returned text.'
-          var html = MovieSearch.App.build_favorites_html(JSON.parse(response)).innerHTML;
+          json = JSON.parse(response)
+
+          // We handle both getting favorites and posting to favorites
+          var html = MovieSearch.App.build_favorites_html(json).innerHTML;
           favoritesContainer.innerHTML =  html;
           loading.style.display = "none";
         } else {
@@ -192,7 +197,7 @@ MovieSearch.App = {
   },
 
   add_favorite : function (movie){
-    params={"name": movie.parentElement.innterText, "oid": movie.dataset.imdbId}
+    params={"name": movie.text, "oid": movie.dataset.imdbId}
     MovieSearch.App.backend_api_request("favorites", params );
   },
 
@@ -204,8 +209,13 @@ MovieSearch.App = {
     var html =document.createElement("ul");
     if(response_json.favorites.length > 0){
       for(i=0; i < response_json.favorites.length; i++){ 
+        if(response_json.favorites[i]["result"] != undefined){
+          var result = document.createElement("p")
+          result.textContent = "Result: " + response_json.favorites[i]["result"]
+          html.append(result);
+        }
         var li = document.createElement("li");
-        li.textContent = response_json.favorites[i]["name"] + response_json.favorites[i]["oid"];
+        li.textContent = "Title: " + response_json.favorites[i]["name"] + " | imdb ID: " + response_json.favorites[i]["oid"];
         html.append(li);
       }
     } else {
