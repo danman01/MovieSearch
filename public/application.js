@@ -133,23 +133,49 @@ MovieSearch.App = {
     var el = document.createElement("li");
     for(prop in result){
       if(prop == "Title"){
+
+        // setup title
         var detail = document.createElement('h3');
-        detail.innerHTML = "<a href='#' data-imdb-id='"+result['imdbID']+"'>" + result[prop] + "</a>";
-        detail.addEventListener("click", function( event ) {
-          MovieSearch.App.show_movie_details( event.srcElement );
+        var titleLink = document.createElement("a");
+        titleLink.dataset.imdbId = result['imdbID'];
+        titleLink.textContent = result[prop];
+
+        // setup Full Details link
+        var more = document.createElement("a");
+        more.textContent = "Full Details"
+        more.addEventListener("click", function( event ) {
+          MovieSearch.App.show_movie_details( titleLink );
         });
+
+        // setup Add Favorite link
         var favorite = document.createElement("a");
         favorite.textContent = "Add Favorite";
         favorite.addEventListener("click", function (event) {
-          MovieSearch.App.add_favorite( event.srcElement );
+          MovieSearch.App.add_favorite( titleLink );
         })
-        detail.appendChild(favorite);
+
+        // format the title
+        var span = document.createElement("span");
+        span.textContent = " | ";
+        var br = document.createElement("br");
+
+        detail.appendChild(titleLink);
+        detail.appendChild(br);
+        if(level == "basic"){
+          detail.appendChild(more);
+          detail.appendChild(span);
+          detail.appendChild(favorite);
+        }
       }
       else if(prop == "Poster" && result[prop] != "N/A"){
         var detail = document.createElement('img');
         if(level == "basic"){
-          detail.height = "75";
+          detail.height = "100";
+          detail.addEventListener("click", function( event ) {
+            MovieSearch.App.show_movie_details( event.srcElement );
+          });
         }
+        detail.dataset.imdbId = result['imdbID']
         detail.src = result[prop];
       }
       else if(level=="full") {

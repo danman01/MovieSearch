@@ -1,0 +1,30 @@
+html { 
+  background: url(bg.jpg) no-repeat center center fixed; 
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+body {
+  color: aqua;
+}
+
+a {
+  color: orange;
+}
+
+a:visited {
+  color: hotpink;
+}
+
+body > .container {
+  max-width: 1200px;
+  margin: 50px 30px 20px 30px;
+  text-align: center;
+  
+}
+
+.container li, .container ul {
+  list-style-type:none;
+}
