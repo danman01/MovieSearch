@@ -34,8 +34,9 @@ MovieSearch.App = {
   omdb_api_request: function(kind, query){
     loading.style.display = "block";
 
-    var url = 'https://www.omdbapi.com/?' + kind + '=' + query;
-    var response;
+    let apikey = 'BanMePlz'
+    var url = `https://www.omdbapi.com/?${kind}=${query}&apikey=${apikey}`
+    var response
 
     // Setup ajax request:
     var xhr = new XMLHttpRequest();
@@ -49,15 +50,21 @@ MovieSearch.App = {
     xhr.onload = function () {
       var DONE = 4; // readyState 4 means the request is done.
       var OK = 200; // status 200 is a successful return.
+      
       if (xhr.readyState === DONE) {
-        if (xhr.status === OK) 
+        if (xhr.status === OK){ 
           response = xhr.responseText
-          console.log('Success: ' + response); 
-          MovieSearch.App.update_movie_list(kind, JSON.parse(response))
+          if(response === undefined){
+            console.error("Error! Response is undefined")
+          } else {
+            console.log('Success: ' + response); 
+            MovieSearch.App.update_movie_list(kind, JSON.parse(response))
+          }
         } else {
           response = xhr.status;
           console.log('Error: ' + response); // An error occurred during the request.
         }
+      }
     }
   },
 
@@ -116,6 +123,11 @@ MovieSearch.App = {
     else if(kind == "i"){
       // imdbId search
       MovieSearch.App.populate_details(response)
+    }
+    else if(kind == "t"){
+      if(response["Response"] === "False"){
+        console.log("error!", response["Error"])
+      }
     }
   },
 
